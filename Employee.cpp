@@ -4,8 +4,10 @@ Employee::Employee(QObject *parent)
     : QObject{parent}
 {
     query = new QSqlQuery();
-    positions = new QMap<QString, int>();
-    departments = new QMap<QString, int>();
+    positions = new QMap<int, int>();
+    positionTitles = new QStringList();
+    departments = new QMap<int, int>();
+    departmentTitles = new QStringList();
 
     accessLevels = new QMap<QString, QString>();
     accessLevels->insert("администратор", "admin");
@@ -13,31 +15,43 @@ Employee::Employee(QObject *parent)
     accessLevels->insert("особый", "special");
 }
 
-QStringList Employee::getPositionsList()
+void Employee::createComboboxList(QStringList *titlesList, QMap<int, int> *idList, QString table)
 {
-    query->exec("SELECT title, id FROM positions;");
+    titlesList->clear();
+    idList->clear();
+    query->exec(QString("SELECT title, id FROM %1;").arg(table));
     while (query->next())
     {
-        positions->insert(query->value(0).toString(), query->value(1).toInt());
+        titlesList->append(query->value(0).toString());
+        idList->insert((titlesList->length() - 1), query->value(1).toInt());
     }
+}
 
-    return QStringList(positions->keys());
+QStringList Employee::getPositionsList()
+{
+    createComboboxList(positionTitles, positions, "positions");
+    return *positionTitles;
 }
 
 QStringList Employee::getDepartmentsList()
 {
-    query->exec("SELECT title, id FROM departments;");
-    while (query->next())
-    {
-        departments->insert(query->value(0).toString(), query->value(1).toInt());
-    }
-
-    return QStringList(departments->keys());
+    createComboboxList(departmentTitles, departments, "departments");
+    return *departmentTitles;
 }
 
-void Employee::submit()
+void Employee::create()
 {
-    emit sendToDBModel(this);
+    emit createSignalToDBModel(this);
+}
+
+void Employee::update(const int row)
+{
+    emit updateSignalToDBModel(row, this);
+}
+
+void Employee::getData(const int index)
+{
+    qDebug() << index;
 }
 
 QString Employee::getLastName() const
@@ -70,24 +84,50 @@ void Employee::setPatronymic(const QString &patronymic)
     m_nPatronymic = patronymic;
 }
 
-QString Employee::getPosition() const
+int Employee::getPosition() const
 {
     return positions->key(m_nPosition);
 }
 
-void Employee::setPosition(const QString &position)
+void Employee::setPosition(const int position_ind)
 {
-    m_nPosition = positions->value(position);
+    m_nPosition = positions->value(position_ind);
 }
 
-QString Employee::getDepartment() const
+void Employee::setPositionWithTitle(QString title)
+{
+    getPositionsList();
+    for(int i = 0; i < positionTitles->length(); i++)
+    {
+        if(positionTitles->at(i) == title)
+        {
+            m_nPosition = positions->value(i);
+            break;
+        }
+    }
+}
+
+int Employee::getDepartment() const
 {
     return departments->key(m_nDepartment);
 }
 
-void Employee::setDepartment(const QString &department)
+void Employee::setDepartment(const int department_ind)
 {
-    m_nDepartment = departments->value(department);
+    m_nDepartment = departments->value(department_ind);
+}
+
+void Employee::setDepartmentWithTitle(QString title)
+{
+    getDepartmentsList();
+    for(int i = 0; i < departmentTitles->length(); i++)
+    {
+        if(departmentTitles->at(i) == title)
+        {
+            m_nDepartment = departments->value(i);
+            break;
+        }
+    }
 }
 
 QString Employee::getOfficialDuties() const
@@ -155,12 +195,42 @@ int Employee::getPositionId() const
     return m_nPosition;
 }
 
+void Employee::setPositionId(int positionId)
+{
+    m_nPosition = positionId;
+}
+
 int Employee::getDepartmentId() const
 {
     return m_nDepartment;
 }
 
+void Employee::setDepartmentId(int departmentId)
+{
+    m_nDepartment = departmentId;
+}
+
 QString Employee::getAccessLevelAlias() const
 {
     return m_nAccessLevel;
+}
+
+void Employee::setAccessLevelAlias(QString accessLevelAlias)
+{
+    m_nAccessLevel = accessLevelAlias;
+}
+
+void Employee::updateEntity(const Employee *employee)
+{
+    m_nLastName = employee->m_nLastName;
+    m_nFirstName = employee->m_nFirstName;
+    m_nPatronymic = employee->m_nPatronymic;
+    m_nPosition = employee->m_nPosition;
+    m_nDepartment = employee->m_nDepartment;
+    m_nOfficialDuties = employee->m_nOfficialDuties;
+    m_nDocNumber = employee->m_nDocNumber;
+    m_nLogin = employee->m_nLogin;
+    m_nAccessLevel = employee->m_nAccessLevel;
+    m_nInitialPassword = employee->m_nInitialPassword;
+    m_nCurrentPassword = employee->m_nCurrentPassword;
 }

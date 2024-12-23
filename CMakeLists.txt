@@ -38,7 +38,7 @@ else()
           ${PROJECT_SOURCES}
           DBConnector.h DBConnector.cpp
           StaffDBModel.h StaffDBModel.cpp
-          OptionDBModel.h OptionDBModel.cpp
+
           Employee.h Employee.cpp
 
         )

@@ -4,7 +4,6 @@ import QtQuick.Layouts 1.15
 import QtQuick.Window 2.15
 import Qt.labs.qmlmodels 1.0
 import com.staffmanagementsystem.Employee 1.0
-// import com.staffmanagementsystem.StaffDBModel 1.0
 
 Window {
     id: mainWindow
@@ -12,11 +11,12 @@ Window {
     height: Screen.width
     width: Screen.width
     visible: true
-    title: "Staff Management System"
+    title: "Система управления персоналом"
 
     property var columnWidths: [30, 150, 150, 150, 150, 200, 250, 150, 150, 150, 150, 240, 250]
     property int selectedRow: -1
     property var ids: []
+    property int mode: 0 // 0 - creation Employee obj, 1 - editing Employee obj
 
     ColumnLayout {
         id: mainPanel
@@ -76,7 +76,10 @@ Window {
                         text: "Создать"
                         font.pixelSize: 20
                         onClicked: {
-                            createEmployeeForm.visible = true
+                            mode = 0
+                            selectedRow = -1
+                            employeeForm.clearForm()
+                            employeeForm.visible = true
                         }
                     }
 
@@ -91,6 +94,29 @@ Window {
                         text: "Редактировать"
                         font.pixelSize: 20
                         enabled: selectedRow === -1 ? false : true
+                        onClicked: {
+                            mode = 1
+                            staffModel.get(selectedRow)
+                            employeeForm.visible = true
+                            last_name.text = employeeObj.lastName
+                            first_name.text = employeeObj.firstName
+                            patronymic.text = employeeObj.patronymic
+                            position.currentIndex = employeeObj.position
+                            department.currentIndex = employeeObj.department
+                            official_duties.text = employeeObj.officialDuties
+                            document_number.text = employeeObj.docNumber
+                            login.text = employeeObj.login
+                            // accessLevelBtnGrp.checkedButton.text = employeeObj.accessLevel
+                            setRadioButton(employeeObj.accessLevel)
+                            initial_password.text = employeeObj.initialPassword
+                            current_password.text = employeeObj.currentPassword
+                        }
+
+                        function setRadioButton(accessLevelOption) {
+                            if (accessLevelOption === "сотрудник") employeeRadioBtn.checked = true
+                            else if (accessLevelOption === "администратор") adminRadioBtn.checked = true
+                            else specialRadioBtn.checked = true
+                        }
                     }
 
                     RoundButton {
@@ -104,6 +130,9 @@ Window {
                         text: "Удалить"
                         font.pixelSize: 20
                         enabled: selectedRow === -1 ? false : true
+                        onClicked: {
+                            staffModel.remove(selectedRow)
+                        }
                     }
                 }
             }
@@ -136,7 +165,7 @@ Window {
                         width: parent.width
                         height: parent.height
                         color: index % employeeTableView.rows === selectedRow ? "lightblue" : "white"
-                        border.color: "black"
+                        border.color: "lightgrey"
                         border.width: 1
 
                         MouseArea {
@@ -187,23 +216,28 @@ Window {
     }
 
     Window {
-        id: createEmployeeForm
+        id: employeeForm
 
         x: Screen.width / 2 - this.width / 2
         y: Screen.height / 2 - this.height / 2
         width: 500
         height: 800
+        title: "Данные сотрудника"
         visible: false
 
-        Employee {
-            id: employee
+        function clearForm() {
+            last_name.text = ""
+            first_name.text = ""
+            patronymic.text = ""
+            position.currentIndex = 0
+            department.currentIndex = 0
+            official_duties.text = ""
+            document_number.text = ""
+            login.text = ""
+            employeeRadioBtn.checked = true
+            initial_password.text = ""
+            current_password.text = ""
         }
-
-        // StaffDBModel {
-        //     id: tableModelEntity
-        // }
-
-
 
         Item {
             anchors {
@@ -298,6 +332,31 @@ Window {
                 }
 
                 Label {
+                    text: "Уровень доступа:"
+                    Layout.fillWidth: true
+                }
+                ButtonGroup {
+                    id: accessLevelBtnGrp
+                    buttons: column.children
+                }
+                Column {
+                    id: column
+                    RadioButton {
+                        id: employeeRadioBtn
+                        checked: true
+                        text: "сотрудник"
+                    }
+                    RadioButton {
+                        id: adminRadioBtn
+                        text: "администратор"
+                    }
+                    RadioButton {
+                        id: specialRadioBtn
+                        text: "особый"
+                    }
+                }
+
+                Label {
                     text: "Логин:"
                     Layout.fillWidth: true
                 }
@@ -309,33 +368,37 @@ Window {
                 }
 
                 Label {
-                    text: "Уровень доступа:"
-                    Layout.fillWidth: true
-                }
-                ButtonGroup {
-                    id: accessLevelBtnGrp
-                    buttons: column.children
-                }
-                Column {
-                    id: column
-                    RadioButton {
-                        checked: true
-                        text: "сотрудник"
-                    }
-                    RadioButton {
-                        text: "администратор"
-                    }
-                    RadioButton {
-                        text: "особый"
-                    }
-                }
-
-                Label {
                     text: "Первоначальный пароль:"
                     Layout.fillWidth: true
                 }
                 TextField {
                     id: initial_password
+
+                    Layout.fillWidth: true
+                    placeholderText: "XXXXXXXX"
+                    readOnly: mode === 0 ? false : true
+                    background: Rectangle {
+                        id: appearance
+                        color: mode === 0 ? "#ffffff" : "lightgrey"
+                        border.color: mode === 0 ? "#b0bec5" : "lightgrey"
+                    }
+
+                    onFocusChanged:
+                    {
+                        appearance.border.color = initial_password.activeFocus ? "#0288d1" : "#b0bec5"
+                        appearance.border.width = initial_password.activeFocus ? 2 : 1
+                    }
+                    onTextChanged: {
+                        current_password.text = this.text
+                    }
+                }
+
+                Label {
+                    text: "Текущий пароль:"
+                    Layout.fillWidth: true
+                }
+                TextField {
+                    id: current_password
 
                     Layout.fillWidth: true
                     placeholderText: "XXXXXXXX"
@@ -345,48 +408,45 @@ Window {
                 Item { Layout.fillWidth: true }
 
                 RoundButton {
-                    id: createEmployeeFormSubmit
+                    id: employeeFormSubmit
 
                     text: "ОК"
                     Layout.fillWidth: true
                     font.pixelSize: 20
                     onClicked: {
-                        // employee.lastName = last_name.text
-                        // employee.firstName = first_name.text
-                        // employee.patronymic = patronymic.text
-                        // employee.position = position.currentText
-                        // employee.department = department.currentText
-                        // employee.officialDuties = official_duties.text
-                        // employee.docNumber = document_number.text
-                        // employee.login = login.text
-                        // employee.accessLevel = accessLevelBtnGrp.checkedButton.text
-                        // employee.initialPassword = initial_password.text
-
-                        // tableModelEntity.create(employee)
-
                         employeeObj.lastName = last_name.text
                         employeeObj.firstName = first_name.text
                         employeeObj.patronymic = patronymic.text
-                        employeeObj.position = position.currentText
-                        employeeObj.department = department.currentText
+                        employeeObj.position = position.currentIndex
+                        employeeObj.department = department.currentIndex
                         employeeObj.officialDuties = official_duties.text
                         employeeObj.docNumber = document_number.text
                         employeeObj.login = login.text
                         employeeObj.accessLevel = accessLevelBtnGrp.checkedButton.text
                         employeeObj.initialPassword = initial_password.text
+                        employeeObj.currentPassword = current_password.text
 
-                        employeeObj.submit()
+                        if (mode === 0)
+                        {
+                            employeeObj.create()
+                        }
+                        else
+                        {
+                            employeeObj.update(selectedRow)
+                            employeeForm.visible = false
+                        }
+                        employeeForm.clearForm()
                     }
                 }
                 RoundButton {
-                    id: clearEmployeeFormSubmit
+                    id: employeeFormClear
 
                     text: "Очистить"
                     Layout.fillWidth: true
 
                     font.pixelSize: 20
                     onClicked: {
-
+                        employeeForm.clearForm()
                     }
                 }
             }

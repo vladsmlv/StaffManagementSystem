@@ -13,7 +13,6 @@ int main(int argc, char *argv[])
 #endif
     QGuiApplication app(argc, argv);
     qmlRegisterType<Employee>("com.staffmanagementsystem.Employee", 1, 0, "Employee");
-    // qmlRegisterType<StaffDBModel>("com.staffmanagementsystem.StaffDBModel", 1, 0, "StaffDBModel");
 
     DBConnector* dbConnector = new DBConnector(&app);
     dbConnector->initDB("QPSQL", "Staff", "sa", "localhost", "sysadmin1029");
@@ -23,7 +22,9 @@ int main(int argc, char *argv[])
     StaffDBModel *staffModel = new StaffDBModel();
     Employee *employee = new Employee();
 
-    QObject::connect(employee, &Employee::sendToDBModel, staffModel, &StaffDBModel::create);
+    QObject::connect(employee, &Employee::createSignalToDBModel, staffModel, &StaffDBModel::create);
+    QObject::connect(employee, &Employee::updateSignalToDBModel, staffModel, &StaffDBModel::update);
+    QObject::connect(staffModel, &StaffDBModel::sendToEmployeeEntity, employee, &Employee::updateEntity);
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("staffModel", staffModel);

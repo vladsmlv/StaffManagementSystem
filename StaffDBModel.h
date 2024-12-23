@@ -17,8 +17,8 @@ public:
         LAST_NAME,
         FIRST_NAME,
         PATRONYMIC,
-        POSITION_ID,
-        DEPARTMENT_ID,
+        POSITION,
+        DEPARTMENT,
         OFFICIAL_DUTIES,
         DOCUMENT_NUMBER,
         LOGIN,
@@ -31,9 +31,17 @@ public:
     Q_INVOKABLE QVariant headerData(int section, Qt::Orientation orientation, int role=Qt::DisplayRole) const;
 
 public slots:
+    void get(const int);
+    void set(const int, const Employee*);
     void create(const Employee*);
+    void update(const int, const Employee*);
+    bool remove(const int);
 
 signals:
+    void sendToEmployeeEntity(const Employee*);
+
+private:
+    Employee *employee;
 };
 
 #endif // STAFFDBMODEL_H

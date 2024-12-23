@@ -12,8 +12,8 @@ private:
     Q_PROPERTY(QString lastName READ getLastName WRITE setLastName NOTIFY lastNameChanged FINAL)
     Q_PROPERTY(QString firstName READ getFirstName WRITE setFirstName NOTIFY firstNameChanged FINAL)
     Q_PROPERTY(QString patronymic READ getPatronymic WRITE setPatronymic NOTIFY patronymicChanged FINAL)
-    Q_PROPERTY(QString position READ getPosition WRITE setPosition NOTIFY positionChanged FINAL)
-    Q_PROPERTY(QString department READ getDepartment WRITE setDepartment NOTIFY departmentChanged FINAL)
+    Q_PROPERTY(int position READ getPosition WRITE setPosition NOTIFY positionChanged FINAL)
+    Q_PROPERTY(int department READ getDepartment WRITE setDepartment NOTIFY departmentChanged FINAL)
     Q_PROPERTY(QString officialDuties READ getOfficialDuties WRITE setOfficialDuties NOTIFY officialDutiesChanged FINAL)
     Q_PROPERTY(QString docNumber READ getDocNumber WRITE setDocNumber NOTIFY docNumberChanged FINAL)
     Q_PROPERTY(QString login READ getLogin WRITE setLogin NOTIFY loginChanged FINAL)
@@ -33,16 +33,21 @@ private:
     QString m_nInitialPassword;
     QString m_nCurrentPassword;
 
-    QMap<QString, int> *positions, *departments;
+    QMap<int, int> *positions, *departments;
+    QStringList *positionTitles, *departmentTitles;
     QMap<QString, QString> *accessLevels;
     QSqlQuery *query;
+
+    void createComboboxList(QStringList*, QMap<int, int>*, QString);
 
 public:
     explicit Employee(QObject *parent = nullptr);
 
     Q_INVOKABLE QStringList getPositionsList();
     Q_INVOKABLE QStringList getDepartmentsList();
-    Q_INVOKABLE void submit();
+    Q_INVOKABLE void create();
+    Q_INVOKABLE void update(const int);
+    Q_INVOKABLE void getData(const int);
 
     QString getLastName() const;
     void setLastName(const QString&);
@@ -50,10 +55,12 @@ public:
     void setFirstName(const QString&);
     QString getPatronymic() const;
     void setPatronymic(const QString&);
-    QString getPosition() const;
-    void setPosition(const QString&);
-    QString getDepartment() const;
-    void setDepartment(const QString&);
+    int getPosition() const;
+    void setPosition(const int);
+    void setPositionWithTitle(QString);
+    int getDepartment() const;
+    void setDepartment(const int);
+    void setDepartmentWithTitle(QString);
     QString getOfficialDuties() const;
     void setOfficialDuties(const QString&);
     QString getDocNumber() const;
@@ -67,38 +74,22 @@ public:
     QString getCurrentPassword() const;
     void setCurrentPassword(const QString&);
 
-    // Q_INVOKABLE QString getLastName() const;
-    // Q_INVOKABLE void setLastName(const QString&);
-    // Q_INVOKABLE QString getFirstName() const;
-    // Q_INVOKABLE void setFirstName(const QString&);
-    // Q_INVOKABLE QString getPatronymic() const;
-    // Q_INVOKABLE void setPatronymic(const QString&);
-    // Q_INVOKABLE QString getPosition() const;
-    // Q_INVOKABLE void setPosition(const QString&);
-    // Q_INVOKABLE QString getDepartment() const;
-    // Q_INVOKABLE void setDepartment(const QString&);
-    // Q_INVOKABLE QString getOfficialDuties() const;
-    // Q_INVOKABLE void setOfficialDuties(const QString&);
-    // Q_INVOKABLE QString getDocNumber() const;
-    // Q_INVOKABLE void setDocNumber(const QString&);
-    // Q_INVOKABLE QString getLogin() const;
-    // Q_INVOKABLE void setLogin(const QString&);
-    // Q_INVOKABLE QString getAccessLevel() const;
-    // Q_INVOKABLE void setAccessLevel(const QString&);
-    // Q_INVOKABLE QString getInitialPassword() const;
-    // Q_INVOKABLE void setInitialPassword(const QString&);
-    // Q_INVOKABLE QString getCurrentPassword() const;
-    // Q_INVOKABLE void setCurrentPassword(const QString&);
-
     int getPositionId() const;
+    void setPositionId(int);
     int getDepartmentId() const;
+    void setDepartmentId(int);
     QString getAccessLevelAlias() const;
+    void setAccessLevelAlias(QString);
+
+public slots:
+    void updateEntity(const Employee*);
 
 signals:
     void lastNameChanged();
     void firstNameChanged();
     void patronymicChanged();
     void positionChanged();
+    void positionIndexChanged();
     void departmentChanged();
     void officialDutiesChanged();
     void docNumberChanged();
@@ -107,7 +98,8 @@ signals:
     void initialPasswordChanged();
     void currentPasswordChanged();
 
-    void sendToDBModel(const Employee*);
+    void createSignalToDBModel(const Employee*);
+    void updateSignalToDBModel(const int, const Employee*);
 };
 
 #endif // EMPLOYEE_H
