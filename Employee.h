@@ -38,6 +38,9 @@ private:
     QMap<QString, QString> *accessLevels;
     QSqlQuery *query;
 
+    bool addAdministrator = false;
+    bool removeAdministrator = false;
+
     void createComboboxList(QStringList*, QMap<int, int>*, QString);
 
 public:
@@ -47,7 +50,7 @@ public:
     Q_INVOKABLE QStringList getDepartmentsList();
     Q_INVOKABLE void create();
     Q_INVOKABLE void update(const int);
-    Q_INVOKABLE void getData(const int);
+    Q_INVOKABLE void remove(const int);
 
     QString getLastName() const;
     void setLastName(const QString&);
@@ -98,8 +101,13 @@ signals:
     void initialPasswordChanged();
     void currentPasswordChanged();
 
+    void getSignalToDBModel(const int);
     void createSignalToDBModel(const Employee*);
     void updateSignalToDBModel(const int, const Employee*);
+    void deleteSignalToDBModel(const int);
+    void createAdmin(QString, QString);
+    void removeAdmin(QString);
+    void deleteAdmin(QString);
 };
 
 #endif // EMPLOYEE_H

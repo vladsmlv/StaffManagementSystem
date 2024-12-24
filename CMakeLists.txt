@@ -40,6 +40,7 @@ else()
           StaffDBModel.h StaffDBModel.cpp
 
           Employee.h Employee.cpp
+          DBAdminManager.h DBAdminManager.cpp
 
         )
     endif()

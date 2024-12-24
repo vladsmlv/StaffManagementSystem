@@ -22,9 +22,10 @@ bool DBConnector::openConnection()
 {
     if (!db.open())
     {
-        qDebug() << "Connection failed:" << db.lastError();
+        qDebug().noquote() << "Connection failed:" << db.lastError();
         return false;
     }
+    qDebug() << "Connection opened.";
     return true;
 }
 

@@ -66,7 +66,7 @@ Window {
                     }
 
                     RoundButton {
-                        id: createEmployee
+                        id: createEmployeeBtn
 
                         Layout.alignment: Qt.AlignCenter
                         Layout.preferredHeight: parent.height / 4
@@ -84,7 +84,7 @@ Window {
                     }
 
                     RoundButton {
-                        id: editEmployee
+                        id: editEmployeeBtn
 
                         Layout.alignment: Qt.AlignCenter
                         Layout.preferredHeight: parent.height / 4
@@ -106,7 +106,6 @@ Window {
                             official_duties.text = employeeObj.officialDuties
                             document_number.text = employeeObj.docNumber
                             login.text = employeeObj.login
-                            // accessLevelBtnGrp.checkedButton.text = employeeObj.accessLevel
                             setRadioButton(employeeObj.accessLevel)
                             initial_password.text = employeeObj.initialPassword
                             current_password.text = employeeObj.currentPassword
@@ -120,7 +119,7 @@ Window {
                     }
 
                     RoundButton {
-                        id: deleteEmployee
+                        id: deleteEmployeeBtn
 
                         Layout.alignment: Qt.AlignCenter
                         Layout.preferredHeight: parent.height / 4
@@ -131,7 +130,8 @@ Window {
                         font.pixelSize: 20
                         enabled: selectedRow === -1 ? false : true
                         onClicked: {
-                            staffModel.remove(selectedRow)
+                            employeeObj.remove(selectedRow)
+                            selectedRow = -1
                         }
                     }
                 }

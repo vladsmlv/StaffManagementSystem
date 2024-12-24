@@ -13,6 +13,7 @@ Employee::Employee(QObject *parent)
     accessLevels->insert("администратор", "admin");
     accessLevels->insert("сотрудник", "employee");
     accessLevels->insert("особый", "special");
+    m_nAccessLevel = "employee";
 }
 
 void Employee::createComboboxList(QStringList *titlesList, QMap<int, int> *idList, QString table)
@@ -42,16 +43,28 @@ QStringList Employee::getDepartmentsList()
 void Employee::create()
 {
     emit createSignalToDBModel(this);
+    if(addAdministrator)
+        emit createAdmin(m_nLogin, m_nCurrentPassword);
+    addAdministrator = false;
 }
 
 void Employee::update(const int row)
 {
     emit updateSignalToDBModel(row, this);
+    if(addAdministrator)
+        emit createAdmin(m_nLogin, m_nCurrentPassword);
+    addAdministrator = false;
+    if(removeAdministrator)
+        emit removeAdmin(m_nLogin);
+    removeAdministrator = false;
 }
 
-void Employee::getData(const int index)
+void Employee::remove(const int row)
 {
-    qDebug() << index;
+    emit getSignalToDBModel(row);
+    if(m_nAccessLevel == "admin")
+        emit deleteAdmin(m_nLogin);
+    emit deleteSignalToDBModel(row);
 }
 
 QString Employee::getLastName() const
@@ -167,7 +180,12 @@ QString Employee::getAccessLevel() const
 
 void Employee::setAccessLevel(const QString &accessLevel)
 {
-    m_nAccessLevel = accessLevels->value(accessLevel);
+    QString newAccessLevel = accessLevels->value(accessLevel);
+    if(m_nAccessLevel != "admin" && newAccessLevel == "admin")
+        addAdministrator = true;
+    if(m_nAccessLevel == "admin" && newAccessLevel != "admin")
+        removeAdministrator = true;
+    m_nAccessLevel = newAccessLevel;
 }
 
 QString Employee::getInitialPassword() const

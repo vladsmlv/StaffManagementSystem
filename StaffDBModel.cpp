@@ -36,23 +36,36 @@ void StaffDBModel::create(const Employee* employee)
     int row = rowCount();
     insertRow(row);
     set(row, employee);
+    setData(index(row, CREATION_DATE), QDateTime::currentDateTime());
     bool result = submitAll();
     if(!result)
-        qDebug() << "Error:" << lastError();
+        qDebug() << "DBModel Error:" << lastError();
     select();
 }
 
 void StaffDBModel::update(const int row, const Employee *employee)
 {
+    if (row < 0 || row >= rowCount())
+    {
+        qDebug() << "DBModel Error: row index out of range";
+        return;
+    }
+
     set(row, employee);
     bool result = submitAll();
     if(!result)
-        qDebug() << "Error:" << lastError();
+        qDebug() << "DBModel Error:" << lastError();
     select();
 }
 
 void StaffDBModel::get(const int row)
 {
+    if (row < 0 || row >= rowCount())
+    {
+        qDebug() << "DBModel Error: row index out of range";
+        return;
+    }
+
     employee->setLastName(data(index(row, LAST_NAME)).toString());
     employee->setFirstName(data(index(row, FIRST_NAME)).toString());
     employee->setPatronymic(data(index(row, PATRONYMIC)).toString());
@@ -80,7 +93,6 @@ void StaffDBModel::set(const int row, const Employee *employee)
     setData(index(row, LOGIN), employee->getLogin());
     setData(index(row, ACCESS_LEVEL), employee->getAccessLevelAlias());
     setData(index(row, CURRENT_PASSWORD), employee->getCurrentPassword());
-    setData(index(row, CREATION_DATE), QDateTime::currentDateTime());
     setData(index(row, INITIAL_PASSWORD), employee->getInitialPassword());
 }
 
@@ -88,7 +100,7 @@ bool StaffDBModel::remove(const int row)
 {
     if (row < 0 || row >= rowCount())
     {
-        qDebug() << "Error: row index out of range";
+        qDebug() << "DBModel Error: row index out of range";
         return false;
     }
 
